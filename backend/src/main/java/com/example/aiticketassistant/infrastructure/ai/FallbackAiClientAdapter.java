@@ -139,7 +139,7 @@ public class FallbackAiClientAdapter implements AiClientPort {
     private String directFallback(String message) {
         if (isMaxCountClothingQuestion(message)) {
             int budget = extractBudget(message);
-            int unitPrice = 109;
+            int unitPrice = 99;
             int quantity = budget / unitPrice;
             int total = quantity * unitPrice;
             int remaining = budget - total;
@@ -196,7 +196,8 @@ public class FallbackAiClientAdapter implements AiClientPort {
     }
 
     private String knowledgeFallback(String userPrompt) {
-        if (userPrompt.contains("Retrieved sources:\n") && userPrompt.trim().endsWith("Retrieved sources:")) {
+        String sources = extractSources(userPrompt);
+        if (sources.isBlank()) {
             return "未检索到直接匹配的知识库资料，建议转人工复核或补充问题细节。";
         }
         if (userPrompt.contains("退款")) {
@@ -205,6 +206,33 @@ public class FallbackAiClientAdapter implements AiClientPort {
         if (userPrompt.contains("支付")) {
             return "知识库建议：支付异常需保留支付凭证，核验支付流水后再判断补单或退款。";
         }
-        return "知识库建议：根据检索资料处理该咨询；资料不足时请补充更多上下文。";
+        return "根据知识库检索结果：\n" + sources;
+    }
+
+    private String extractSources(String userPrompt) {
+        String marker = "Retrieved sources:";
+        int index = userPrompt.indexOf(marker);
+        if (index < 0) {
+            return "";
+        }
+        String block = userPrompt.substring(index + marker.length()).trim();
+        if (block.isBlank()) {
+            return "";
+        }
+        StringBuilder sources = new StringBuilder();
+        int lines = 0;
+        for (String line : block.split("\\R")) {
+            if (line.isBlank()) {
+                continue;
+            }
+            if (lines++ >= 5) {
+                break;
+            }
+            if (sources.length() > 0) {
+                sources.append('\n');
+            }
+            sources.append(line.trim());
+        }
+        return sources.toString();
     }
 }

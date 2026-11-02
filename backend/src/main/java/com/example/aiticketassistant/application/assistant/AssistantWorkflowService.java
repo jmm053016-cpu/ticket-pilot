@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AssistantWorkflowService {
     private static final Pattern ORDER_NO_PATTERN = Pattern.compile("\\bORD-[A-Za-z0-9-]+\\b");
+    private static final Pattern TICKET_CREATE_PATTERN = Pattern.compile("(创建|新建|提交|发起|开|建).{0,8}工单");
 
     private final IntentAgent intentAgent;
     private final OrderAgent orderAgent;
@@ -235,7 +236,8 @@ public class AssistantWorkflowService {
                 || containsAny(value, "我的订单", "查我的订单", "查询我的订单", "帮我查订单", "帮我查一下我的订单", "我有几个订单", "全部订单", "所有订单")
                 || containsAny(value, "我的账户", "我的地址", "收货地址", "支付方式", "余额", "积分", "个人信息")
                 || containsAny(value, "取消订单", "确认收货", "申请退款", "帮我退款", "修改地址")
-                || containsAny(value, "创建工单", "提交工单", "帮我开工单", "更新工单", "关闭工单", "升级工单", "我要投诉");
+                || TICKET_CREATE_PATTERN.matcher(value).find()
+                || containsAny(value, "更新工单", "关闭工单", "升级工单", "我要投诉");
     }
 
     private boolean isCatalogFactQuestion(String value) {
