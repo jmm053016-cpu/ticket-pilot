@@ -30,6 +30,7 @@ AI Ticket Assistant 是一个面向企业客服/工单/订单场景的 AI Native
 ### AI / Agent
 
 - `AiClientPort` 统一 AI 调用端口
+- DeepSeek Adapter
 - Qwen Adapter
 - Anthropic Claude Adapter
 - Fallback Adapter
@@ -212,6 +213,7 @@ AI 不能直接调用 Java Service 或直接写数据库。AI 只能返回受控
 ```text
 Application Layer
   -> AiClientPort
+      -> DeepSeekAiClientAdapter
       -> QwenAiClientAdapter
       -> AnthropicClaudeClientAdapter
       -> FallbackAiClientAdapter
@@ -223,6 +225,10 @@ Application Layer
 assistant:
   ai:
     provider: ${AI_PROVIDER:fallback}
+    deepseek-api-key: ${DEEPSEEK_API_KEY:}
+    deepseek-model: ${DEEPSEEK_MODEL:deepseek-chat}
+    deepseek-base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1/chat/completions}
+    deepseek-max-tokens: ${DEEPSEEK_MAX_TOKENS:2000}
     qwen-api-key: ${QWEN_API_KEY:}
     qwen-model: ${QWEN_MODEL:qwen-plus}
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
@@ -234,11 +240,38 @@ Docker Compose 默认：
 
 ```yaml
 AI_PROVIDER: ${AI_PROVIDER:-fallback}
+DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1/chat/completions}
 QWEN_API_KEY: ${QWEN_API_KEY:-}
 QWEN_MODEL: ${QWEN_MODEL:-qwen-plus}
 ```
 
 未配置真实 Key 时自动走 `FallbackAiClientAdapter` 的规则兜底，此时回答由本地 if-else 规则产出，不经过 LLM。
+
+### 使用 DeepSeek
+
+项目根目录 `.env`：
+
+```env
+AI_PROVIDER=deepseek
+DEEPSEEK_API_KEY=sk-你的Key
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1/chat/completions
+DEEPSEEK_MAX_TOKENS=2000
+```
+
+重建后端使配置生效：
+
+```bash
+docker compose up -d --build backend
+```
+
+检查容器内配置：
+
+```bash
+docker compose exec backend printenv AI_PROVIDER DEEPSEEK_MODEL
+```
 
 ## RAG / 知识库
 

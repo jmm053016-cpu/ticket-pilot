@@ -14,6 +14,10 @@ public record AssistantProperties(Ai ai, Chroma chroma, Cors cors) {
             String qwenModel,
             long maxTokens,
             long qwenMaxTokens,
+            String deepSeekApiKey,
+            String deepSeekModel,
+            String deepSeekBaseUrl,
+            long deepSeekMaxTokens,
             Duration timeout,
             boolean enableRealClient) {
         public boolean hasApiKey() {
@@ -22,6 +26,10 @@ public record AssistantProperties(Ai ai, Chroma chroma, Cors cors) {
 
         public boolean hasQwenApiKey() {
             return qwenApiKey != null && !qwenApiKey.isBlank();
+        }
+
+        public boolean hasDeepSeekApiKey() {
+            return deepSeekApiKey != null && !deepSeekApiKey.isBlank();
         }
     }
 

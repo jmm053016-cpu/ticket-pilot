@@ -40,6 +40,10 @@ assistant:
     qwen-model: ${QWEN_MODEL:qwen-plus}
     max-tokens: ${ANTHROPIC_MAX_TOKENS:16000}
     qwen-max-tokens: ${QWEN_MAX_TOKENS:2000}
+    deepseek-api-key: ${DEEPSEEK_API_KEY:}
+    deepseek-model: ${DEEPSEEK_MODEL:deepseek-chat}
+    deepseek-base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1/chat/completions}
+    deepseek-max-tokens: ${DEEPSEEK_MAX_TOKENS:2000}
     timeout: ${ANTHROPIC_TIMEOUT:PT30S}
     enable-real-client: ${ANTHROPIC_ENABLE_REAL_CLIENT:false}
   chroma:
