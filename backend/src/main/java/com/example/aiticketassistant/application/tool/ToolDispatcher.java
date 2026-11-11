@@ -8,10 +8,12 @@ import org.springframework.stereotype.Component;
 public class ToolDispatcher {
     private final ToolRegistry registry;
     private final ToolInvocationRecorder recorder;
+    private final ToolArgumentGuard argumentGuard;
 
-    public ToolDispatcher(ToolRegistry registry, ToolInvocationRecorder recorder) {
+    public ToolDispatcher(ToolRegistry registry, ToolInvocationRecorder recorder, ToolArgumentGuard argumentGuard) {
         this.registry = registry;
         this.recorder = recorder;
+        this.argumentGuard = argumentGuard;
     }
 
     public List<ToolResult> dispatchAll(List<ToolCall> calls, WorkflowContext context) {
@@ -20,11 +22,18 @@ public class ToolDispatcher {
 
     public ToolResult dispatch(ToolCall call, WorkflowContext context) {
         long start = System.currentTimeMillis();
-        ToolResult result = !ToolNames.isAiCallable(call.tool())
-                ? ToolResult.failure(call.tool(), "Tool is not AI-callable: " + call.tool())
-                : registry.find(call.tool())
-                .map(executor -> safeExecute(executor, call, context))
-                .orElseGet(() -> ToolResult.failure(call.tool(), "Tool is not registered: " + call.tool()));
+        ToolResult result;
+        if (!ToolNames.isAiCallable(call.tool())) {
+            result = ToolResult.failure(call.tool(), "Tool is not AI-callable: " + call.tool());
+        } else {
+            // 参数白名单校验先于执行：productId / 数量 / 订单号格式都由代码把关，不信模型（§5.4.6）
+            String rejection = argumentGuard.rejectReason(call, context);
+            result = rejection != null
+                    ? ToolResult.failure(call.tool(), rejection)
+                    : registry.find(call.tool())
+                    .map(executor -> safeExecute(executor, call, context))
+                    .orElseGet(() -> ToolResult.failure(call.tool(), "Tool is not registered: " + call.tool()));
+        }
         recorder.record(context, call, result, System.currentTimeMillis() - start);
         context.toolResults().add(result);
         return result;

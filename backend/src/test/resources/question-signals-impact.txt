@@ -1,0 +1,322 @@
+# QuestionSignals 影响面矩阵（自动生成，勿手改）
+# 每行：<语料标签> => <被点亮的信号，按名字排序；未触发的省略>
+# 重新生成：mvn -DsignalsSnapshot=true -Dtest=QuestionSignalsImpactTest test
+# 表里的裸词看不出组合效果，真实问法与反例在 QUESTION[*] 段。
+
+QUESTION=1000元预算可以怎么搭配 => catalogQueryFor=+领域词, extractBudgetAmount=1000, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+QUESTION=价格刚好699的衣服是什么 => hasCategoryWord, isCatalogOrBudgetQuestion, needsAgentWorkflow
+QUESTION=你好 => catalogQueryFor=+领域词, isPureChitchat
+QUESTION=创建支付失败工单 => catalogQueryFor=+领域词, isTicketCreateRequest, mentionsTicket, needsAgentWorkflow
+QUESTION=取消订单 => catalogQueryFor=+领域词, isCancelOrderRequest, isOrderLifecycleAction, needsAgentWorkflow
+QUESTION=帮我下单 2 件基础纯棉白色T恤 => extractPurchaseQuantity=2, hasCategoryWord, hasPurchaseIntent, needsAgentWorkflow, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×2, purchaseItems=CLOTH-TEE-001×2, purchaseProductId=CLOTH-TEE-001
+QUESTION=帮我写一首诗 => catalogQueryFor=+领域词
+QUESTION=我想买个暖和的围脖 => catalogQueryFor=+领域词, hasPurchaseIntent
+QUESTION=我想要买米色帆布双肩包和藏青帆布鞋，帮我下单 => hasCategoryWord, hasPurchaseIntent, needsAgentWorkflow, productIdIn=CLOTH-CANVAS-028, productItemsIn=CLOTH-BAG-029×1+CLOTH-CANVAS-028×1, purchaseItems=CLOTH-BAG-029×1+CLOTH-CANVAS-028×1, purchaseProductId=CLOTH-BAG-029
+QUESTION=我有1000元，最多可以买几件衣服 => extractBudgetAmount=1000, hasCategoryWord, isAggregateQuestion, isBudgetCountingQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+QUESTION=我有1000元，最多可以买几件衣服，每件不能重复 => extractBudgetAmount=1000, forbidsRepeat, hasCategoryWord, isAggregateQuestion, isBudgetCountingQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+QUESTION=我的收货地址能改吗 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+QUESTION=我的订单有哪些 => catalogQueryFor=+领域词, isAggregateQuestion, isOrderListRequest, needsAgentWorkflow
+QUESTION=我的退款到哪了 ORD-AI-BEC2138C => catalogQueryFor=+领域词, hasOrderNo, isRefundStatusQuery, needsAgentWorkflow, orderNoIn=ORD-AI-BEC2138C
+QUESTION=我的退货到哪了 => catalogQueryFor=+领域词, isReturnStatusQuery, needsAgentWorkflow
+QUESTION=我要买一件黑色连帽卫衣 => hasCategoryWord, hasPurchaseIntent, needsAgentWorkflow, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1, purchaseItems=CLOTH-HOODIE-004×1, purchaseProductId=CLOTH-HOODIE-004
+QUESTION=我要退货 ORD-AI-BEC2138C => catalogQueryFor=+领域词, hasOrderNo, isReturnRequest, needsAgentWorkflow, orderNoIn=ORD-AI-BEC2138C
+QUESTION=推荐一个退款流程 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+QUESTION=支付失败怎么办 => catalogQueryFor=+领域词
+QUESTION=更新工单状态 => catalogQueryFor=+领域词, isTicketActionRequest, mentionsTicket, needsAgentWorkflow
+QUESTION=比699便宜的衣服有哪些 => hasCategoryWord, isAggregateQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+QUESTION=订单 ORD-1001 到哪了 => catalogQueryFor=+领域词, hasOrderNo, needsAgentWorkflow, orderNoIn=ORD-1001
+QUESTION=订单显示 FAILED 是什么意思 => catalogQueryFor=+领域词
+QUESTION=谢谢，明白了 => catalogQueryFor=+领域词, isPureChitchat
+QUESTION=购物车里的东西会自动清空吗 => catalogQueryFor=+领域词
+QUESTION=退货流程是什么 => catalogQueryFor=+领域词
+TABLE:ACCOUNT_CUES=个人信息 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=代金券 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=优惠券 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=余额 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=几张券 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=我的券 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=我的地址 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=我的账户 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=支付方式 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=收货地址 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:ACCOUNT_CUES=积分 => catalogQueryFor=+领域词, isAccountQuery, needsAgentWorkflow
+TABLE:AGGREGATE_CUES=一共 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=价格表 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=低于 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=便宜 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=全部 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:AGGREGATE_CUES=可以买 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=哪些 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=哪几种 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=多少件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:AGGREGATE_CUES=小于 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=总共 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=所有 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=推荐 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:AGGREGATE_CUES=搭配 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:AGGREGATE_CUES=最便宜 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=最多 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:AGGREGATE_CUES=最贵 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=有什么 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=组合 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=能买 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:AGGREGATE_CUES=预算 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=可以买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=多少件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=建议 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:BUDGET_CUES=怎么选 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:BUDGET_CUES=推荐 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:BUDGET_CUES=搭配 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=最多 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:BUDGET_CUES=比较 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:BUDGET_CUES=能买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:BUDGET_CUES=预算 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CART_CUES=删除购物车 => catalogQueryFor=+领域词, isCartAction, isRemoveFromCartRequest, isViewCartRequest, needsAgentWorkflow
+TABLE:CART_CUES=加入购物车 => catalogQueryFor=+领域词, isAddToCartRequest, isCartAction, needsAgentWorkflow
+TABLE:CART_CUES=加购物车 => catalogQueryFor=+领域词, isAddToCartRequest, isCartAction, needsAgentWorkflow
+TABLE:CART_CUES=放购物车 => catalogQueryFor=+领域词, isAddToCartRequest, isCartAction, needsAgentWorkflow
+TABLE:CART_CUES=清空购物车 => catalogQueryFor=+领域词, isCartAction, isRemoveFromCartRequest, isViewCartRequest, needsAgentWorkflow
+TABLE:CART_CUES=移除购物车 => catalogQueryFor=+领域词, isCartAction, isRemoveFromCartRequest, isViewCartRequest, needsAgentWorkflow
+TABLE:CATALOG_CUES=不超过 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=以内 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=价格 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=低于 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=便宜 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=刚好 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=哪些 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=哪几种 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=商品目录 => hasCategoryWord, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CATALOG_CUES=商品编号 => hasCategoryWord, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CATALOG_CUES=多少元 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=多少钱 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=小于 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=少于 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=更便宜 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=最便宜 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=最贵 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=有什么 => catalogQueryFor=+领域词, isAggregateQuestion
+TABLE:CATALOG_CUES=服装目录 => hasCategoryWord, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CATALOG_CUES=编号 => catalogQueryFor=+领域词
+TABLE:CATALOG_CUES=预算 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CATALOG_CUES=预算有限 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:CATEGORY=Polo => hasCategoryWord
+TABLE:CATEGORY=T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×1
+TABLE:CATEGORY=polo => hasCategoryWord
+TABLE:CATEGORY=冲锋衣 => hasCategoryWord
+TABLE:CATEGORY=凉鞋 => hasCategoryWord
+TABLE:CATEGORY=半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-007, productItemsIn=CLOTH-SKIRT-007×1
+TABLE:CATEGORY=单品 => hasCategoryWord
+TABLE:CATEGORY=卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1
+TABLE:CATEGORY=双肩包 => hasCategoryWord, productIdIn=CLOTH-BAG-029, productItemsIn=CLOTH-BAG-029×1
+TABLE:CATEGORY=商品 => hasCategoryWord
+TABLE:CATEGORY=围巾 => hasCategoryWord, productIdIn=CLOTH-SCARF-030, productItemsIn=CLOTH-SCARF-030×1
+TABLE:CATEGORY=墨镜 => hasCategoryWord
+TABLE:CATEGORY=外套 => hasCategoryWord
+TABLE:CATEGORY=大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-009, productItemsIn=CLOTH-COAT-009×1
+TABLE:CATEGORY=太阳镜 => hasCategoryWord
+TABLE:CATEGORY=夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-006, productItemsIn=CLOTH-JACKET-006×1
+TABLE:CATEGORY=套装 => hasCategoryWord
+TABLE:CATEGORY=家居服 => hasCategoryWord
+TABLE:CATEGORY=帽子 => hasCategoryWord
+TABLE:CATEGORY=开衫 => hasCategoryWord, productIdIn=CLOTH-CARDIGAN-017, productItemsIn=CLOTH-CARDIGAN-017×1
+TABLE:CATEGORY=手套 => hasCategoryWord
+TABLE:CATEGORY=服装 => hasCategoryWord
+TABLE:CATEGORY=毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:CATEGORY=毛衣衫 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:CATEGORY=泳衣 => hasCategoryWord
+TABLE:CATEGORY=牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-003, productItemsIn=CLOTH-JEANS-003×1
+TABLE:CATEGORY=瑜伽裤 => hasCategoryWord
+TABLE:CATEGORY=睡衣 => hasCategoryWord
+TABLE:CATEGORY=睡袍 => hasCategoryWord
+TABLE:CATEGORY=童装 => hasCategoryWord
+TABLE:CATEGORY=背包 => hasCategoryWord
+TABLE:CATEGORY=衣服 => hasCategoryWord
+TABLE:CATEGORY=衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-002, productItemsIn=CLOTH-SHIRT-002×1
+TABLE:CATEGORY=裤子 => hasCategoryWord, productIdIn=CLOTH-PANTS-019, productItemsIn=CLOTH-PANTS-019×1
+TABLE:CATEGORY=西装 => hasCategoryWord
+TABLE:CATEGORY=运动鞋 => hasCategoryWord, productIdIn=CLOTH-SNEAKER-027, productItemsIn=CLOTH-SNEAKER-027×1
+TABLE:CATEGORY=连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-005, productItemsIn=CLOTH-DRESS-005×1
+TABLE:CATEGORY=配饰 => hasCategoryWord
+TABLE:CATEGORY=针织 => hasCategoryWord
+TABLE:CATEGORY=长裙 => hasCategoryWord
+TABLE:CATEGORY=靴 => hasCategoryWord
+TABLE:CATEGORY=鞋 => hasCategoryWord
+TABLE:CATEGORY=高跟鞋 => hasCategoryWord
+TABLE:MONEY_OR_QUANTITY=元 => catalogQueryFor=+领域词
+TABLE:MONEY_OR_QUANTITY=几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:MONEY_OR_QUANTITY=多少件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:MONEY_OR_QUANTITY=搭配 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:MONEY_OR_QUANTITY=预算 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:ORDER_LIFECYCLE_CUES=修改地址 => catalogQueryFor=+领域词, isOrderLifecycleAction, needsAgentWorkflow
+TABLE:ORDER_LIFECYCLE_CUES=取消订单 => catalogQueryFor=+领域词, isCancelOrderRequest, isOrderLifecycleAction, needsAgentWorkflow
+TABLE:ORDER_LIFECYCLE_CUES=帮我退款 => catalogQueryFor=+领域词, isOrderLifecycleAction, isRefundRequest, needsAgentWorkflow
+TABLE:ORDER_LIFECYCLE_CUES=申请退款 => catalogQueryFor=+领域词, isOrderLifecycleAction, isRefundRequest, needsAgentWorkflow
+TABLE:ORDER_LIFECYCLE_CUES=确认收货 => catalogQueryFor=+领域词, isOrderLifecycleAction, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=下了什么订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=全部订单 => catalogQueryFor=+领域词, isAggregateQuestion, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=几个订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=多少订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=帮我查一下我的订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=帮我查订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=我有几个订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=我的订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=所有订单 => catalogQueryFor=+领域词, isAggregateQuestion, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=查我的订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:ORDER_LIST_CUES=查询我的订单 => catalogQueryFor=+领域词, isOrderListRequest, needsAgentWorkflow
+TABLE:PRODUCT_NAME_TO_ID=A字半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-007, productItemsIn=CLOTH-SKIRT-007×1
+TABLE:PRODUCT_NAME_TO_ID=POLO衫 => catalogQueryFor=+领域词, productIdIn=CLOTH-POLO-008, productItemsIn=CLOTH-POLO-008×1
+TABLE:PRODUCT_NAME_TO_ID=Polo衫 => hasCategoryWord, productIdIn=CLOTH-POLO-008, productItemsIn=CLOTH-POLO-008×1
+TABLE:PRODUCT_NAME_TO_ID=T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×1
+TABLE:PRODUCT_NAME_TO_ID=polo衫 => hasCategoryWord, productIdIn=CLOTH-POLO-008, productItemsIn=CLOTH-POLO-008×1
+TABLE:PRODUCT_NAME_TO_ID=三防冲锋衣 => hasCategoryWord, productIdIn=CLOTH-JACKET-039, productItemsIn=CLOTH-JACKET-039×1
+TABLE:PRODUCT_NAME_TO_ID=休闲裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-PANTS-019, productItemsIn=CLOTH-PANTS-019×1
+TABLE:PRODUCT_NAME_TO_ID=偏光太阳镜 => hasCategoryWord, productIdIn=CLOTH-SUNGLASS-060, productItemsIn=CLOTH-SUNGLASS-060×1
+TABLE:PRODUCT_NAME_TO_ID=儿童卡通连帽卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-037, productItemsIn=CLOTH-HOODIE-037×1
+TABLE:PRODUCT_NAME_TO_ID=免烫衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-013, productItemsIn=CLOTH-SHIRT-013×1
+TABLE:PRODUCT_NAME_TO_ID=军绿工装夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-021, productItemsIn=CLOTH-JACKET-021×1
+TABLE:PRODUCT_NAME_TO_ID=切尔西短靴 => hasCategoryWord, productIdIn=CLOTH-BOOTS-055, productItemsIn=CLOTH-BOOTS-055×1
+TABLE:PRODUCT_NAME_TO_ID=加绒保暖手套 => hasCategoryWord, productIdIn=CLOTH-GLOVES-059, productItemsIn=CLOTH-GLOVES-059×1
+TABLE:PRODUCT_NAME_TO_ID=半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-007, productItemsIn=CLOTH-SKIRT-007×1
+TABLE:PRODUCT_NAME_TO_ID=卡其五分短裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-SHORTS-020, productItemsIn=CLOTH-SHORTS-020×1
+TABLE:PRODUCT_NAME_TO_ID=卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1
+TABLE:PRODUCT_NAME_TO_ID=双排扣羊毛大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-040, productItemsIn=CLOTH-COAT-040×1
+TABLE:PRODUCT_NAME_TO_ID=双肩包 => hasCategoryWord, productIdIn=CLOTH-BAG-029, productItemsIn=CLOTH-BAG-029×1
+TABLE:PRODUCT_NAME_TO_ID=双面呢大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-024, productItemsIn=CLOTH-COAT-024×1
+TABLE:PRODUCT_NAME_TO_ID=商务休闲Polo衫 => hasCategoryWord, productIdIn=CLOTH-POLO-008, productItemsIn=CLOTH-POLO-008×1
+TABLE:PRODUCT_NAME_TO_ID=围巾 => hasCategoryWord, productIdIn=CLOTH-SCARF-030, productItemsIn=CLOTH-SCARF-030×1
+TABLE:PRODUCT_NAME_TO_ID=基础纯棉白色T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×1
+TABLE:PRODUCT_NAME_TO_ID=复古印花短袖T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-034, productItemsIn=CLOTH-TEE-034×1
+TABLE:PRODUCT_NAME_TO_ID=复古水洗直筒牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-044, productItemsIn=CLOTH-JEANS-044×1
+TABLE:PRODUCT_NAME_TO_ID=复古牛仔夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-038, productItemsIn=CLOTH-JACKET-038×1
+TABLE:PRODUCT_NAME_TO_ID=大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-009, productItemsIn=CLOTH-COAT-009×1
+TABLE:PRODUCT_NAME_TO_ID=夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-006, productItemsIn=CLOTH-JACKET-006×1
+TABLE:PRODUCT_NAME_TO_ID=女士雪纺系带衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-032, productItemsIn=CLOTH-SHIRT-032×1
+TABLE:PRODUCT_NAME_TO_ID=工装夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-021, productItemsIn=CLOTH-JACKET-021×1
+TABLE:PRODUCT_NAME_TO_ID=帆布鞋 => hasCategoryWord, productIdIn=CLOTH-CANVAS-028, productItemsIn=CLOTH-CANVAS-028×1
+TABLE:PRODUCT_NAME_TO_ID=平底凉鞋 => hasCategoryWord, productIdIn=CLOTH-SANDAL-057, productItemsIn=CLOTH-SANDAL-057×1
+TABLE:PRODUCT_NAME_TO_ID=开衫 => hasCategoryWord, productIdIn=CLOTH-CARDIGAN-017, productItemsIn=CLOTH-CARDIGAN-017×1
+TABLE:PRODUCT_NAME_TO_ID=拉链卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-015, productItemsIn=CLOTH-HOODIE-015×1
+TABLE:PRODUCT_NAME_TO_ID=方领连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-025, productItemsIn=CLOTH-DRESS-025×1
+TABLE:PRODUCT_NAME_TO_ID=条纹短袖T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-012, productItemsIn=CLOTH-TEE-012×1
+TABLE:PRODUCT_NAME_TO_ID=格纹法兰绒衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-014, productItemsIn=CLOTH-SHIRT-014×1
+TABLE:PRODUCT_NAME_TO_ID=毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:PRODUCT_NAME_TO_ID=水洗牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-003, productItemsIn=CLOTH-JEANS-003×1
+TABLE:PRODUCT_NAME_TO_ID=法兰绒睡袍 => hasCategoryWord, productIdIn=CLOTH-PAJAMA-051, productItemsIn=CLOTH-PAJAMA-051×1
+TABLE:PRODUCT_NAME_TO_ID=法兰绒衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-014, productItemsIn=CLOTH-SHIRT-014×1
+TABLE:PRODUCT_NAME_TO_ID=法式方领连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-025, productItemsIn=CLOTH-DRESS-025×1
+TABLE:PRODUCT_NAME_TO_ID=浅蓝阔腿牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-018, productItemsIn=CLOTH-JEANS-018×1
+TABLE:PRODUCT_NAME_TO_ID=深灰针织开衫 => hasCategoryWord, productIdIn=CLOTH-CARDIGAN-017, productItemsIn=CLOTH-CARDIGAN-017×1
+TABLE:PRODUCT_NAME_TO_ID=灰色拉链连帽卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-015, productItemsIn=CLOTH-HOODIE-015×1
+TABLE:PRODUCT_NAME_TO_ID=灰色羊毛围巾 => hasCategoryWord, productIdIn=CLOTH-SCARF-030, productItemsIn=CLOTH-SCARF-030×1
+TABLE:PRODUCT_NAME_TO_ID=燕麦色高领毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-016, productItemsIn=CLOTH-SWEATER-016×1
+TABLE:PRODUCT_NAME_TO_ID=牛仔A字半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-046, productItemsIn=CLOTH-SKIRT-046×1
+TABLE:PRODUCT_NAME_TO_ID=牛仔五分短裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-SHORTS-045, productItemsIn=CLOTH-SHORTS-045×1
+TABLE:PRODUCT_NAME_TO_ID=牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-003, productItemsIn=CLOTH-JEANS-003×1
+TABLE:PRODUCT_NAME_TO_ID=牛津纺衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-002, productItemsIn=CLOTH-SHIRT-002×1
+TABLE:PRODUCT_NAME_TO_ID=男士亚麻短袖衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-031, productItemsIn=CLOTH-SHIRT-031×1
+TABLE:PRODUCT_NAME_TO_ID=男式圆领羊绒衫 => catalogQueryFor=+领域词, productIdIn=CLOTH-SWEATER-035, productItemsIn=CLOTH-SWEATER-035×1
+TABLE:PRODUCT_NAME_TO_ID=白色T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×1
+TABLE:PRODUCT_NAME_TO_ID=白色免烫衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-013, productItemsIn=CLOTH-SHIRT-013×1
+TABLE:PRODUCT_NAME_TO_ID=白色厚底运动鞋 => hasCategoryWord, productIdIn=CLOTH-SNEAKER-027, productItemsIn=CLOTH-SNEAKER-027×1
+TABLE:PRODUCT_NAME_TO_ID=白色圆领短袖T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-011, productItemsIn=CLOTH-TEE-011×1
+TABLE:PRODUCT_NAME_TO_ID=百褶中长半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-026, productItemsIn=CLOTH-SKIRT-026×1
+TABLE:PRODUCT_NAME_TO_ID=百褶裙 => catalogQueryFor=+领域词, productIdIn=CLOTH-SKIRT-026, productItemsIn=CLOTH-SKIRT-026×1
+TABLE:PRODUCT_NAME_TO_ID=直筒水洗牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-003, productItemsIn=CLOTH-JEANS-003×1
+TABLE:PRODUCT_NAME_TO_ID=直筒牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-003, productItemsIn=CLOTH-JEANS-003×1
+TABLE:PRODUCT_NAME_TO_ID=短款毛呢外套 => hasCategoryWord, productIdIn=CLOTH-COAT-041, productItemsIn=CLOTH-COAT-041×1
+TABLE:PRODUCT_NAME_TO_ID=短裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-SHORTS-020, productItemsIn=CLOTH-SHORTS-020×1
+TABLE:PRODUCT_NAME_TO_ID=碎花连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-005, productItemsIn=CLOTH-DRESS-005×1
+TABLE:PRODUCT_NAME_TO_ID=碎花雪纺连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-005, productItemsIn=CLOTH-DRESS-005×1
+TABLE:PRODUCT_NAME_TO_ID=米白风衣外套 => hasCategoryWord, productIdIn=CLOTH-WINDBREAKER-022, productItemsIn=CLOTH-WINDBREAKER-022×1
+TABLE:PRODUCT_NAME_TO_ID=米色帆布双肩包 => hasCategoryWord, productIdIn=CLOTH-BAG-029, productItemsIn=CLOTH-BAG-029×1
+TABLE:PRODUCT_NAME_TO_ID=米色毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:PRODUCT_NAME_TO_ID=米色针织毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:PRODUCT_NAME_TO_ID=纯棉T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-001, productItemsIn=CLOTH-TEE-001×1
+TABLE:PRODUCT_NAME_TO_ID=纯棉家居服套装 => hasCategoryWord, productIdIn=CLOTH-PAJAMA-050, productItemsIn=CLOTH-PAJAMA-050×1
+TABLE:PRODUCT_NAME_TO_ID=细高跟鞋 => hasCategoryWord, productIdIn=CLOTH-HEEL-056, productItemsIn=CLOTH-HEEL-056×1
+TABLE:PRODUCT_NAME_TO_ID=羊毛大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-009, productItemsIn=CLOTH-COAT-009×1
+TABLE:PRODUCT_NAME_TO_ID=羊毛混纺大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-009, productItemsIn=CLOTH-COAT-009×1
+TABLE:PRODUCT_NAME_TO_ID=羽绒服 => catalogQueryFor=+领域词, productIdIn=CLOTH-DOWN-023, productItemsIn=CLOTH-DOWN-023×1
+TABLE:PRODUCT_NAME_TO_ID=蓝色牛津纺衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-002, productItemsIn=CLOTH-SHIRT-002×1
+TABLE:PRODUCT_NAME_TO_ID=蓝色衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-002, productItemsIn=CLOTH-SHIRT-002×1
+TABLE:PRODUCT_NAME_TO_ID=蕾丝中长半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-047, productItemsIn=CLOTH-SKIRT-047×1
+TABLE:PRODUCT_NAME_TO_ID=藏青帆布鞋 => hasCategoryWord, productIdIn=CLOTH-CANVAS-028, productItemsIn=CLOTH-CANVAS-028×1
+TABLE:PRODUCT_NAME_TO_ID=衬衫 => hasCategoryWord, productIdIn=CLOTH-SHIRT-002, productItemsIn=CLOTH-SHIRT-002×1
+TABLE:PRODUCT_NAME_TO_ID=裤子 => hasCategoryWord, productIdIn=CLOTH-PANTS-019, productItemsIn=CLOTH-PANTS-019×1
+TABLE:PRODUCT_NAME_TO_ID=轻薄夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-006, productItemsIn=CLOTH-JACKET-006×1
+TABLE:PRODUCT_NAME_TO_ID=轻薄防风夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-006, productItemsIn=CLOTH-JACKET-006×1
+TABLE:PRODUCT_NAME_TO_ID=运动束脚休闲裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-PANTS-043, productItemsIn=CLOTH-PANTS-043×1
+TABLE:PRODUCT_NAME_TO_ID=运动鞋 => hasCategoryWord, productIdIn=CLOTH-SNEAKER-027, productItemsIn=CLOTH-SNEAKER-027×1
+TABLE:PRODUCT_NAME_TO_ID=连体泳衣 => hasCategoryWord, productIdIn=CLOTH-SWIM-054, productItemsIn=CLOTH-SWIM-054×1
+TABLE:PRODUCT_NAME_TO_ID=连帽卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1
+TABLE:PRODUCT_NAME_TO_ID=连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-005, productItemsIn=CLOTH-DRESS-005×1
+TABLE:PRODUCT_NAME_TO_ID=通勤西装连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-049, productItemsIn=CLOTH-DRESS-049×1
+TABLE:PRODUCT_NAME_TO_ID=速干运动T恤 => hasCategoryWord, productIdIn=CLOTH-SPORT-052, productItemsIn=CLOTH-SPORT-052×1
+TABLE:PRODUCT_NAME_TO_ID=重磅纯棉宽松T恤 => hasCategoryWord, productIdIn=CLOTH-TEE-033, productItemsIn=CLOTH-TEE-033×1
+TABLE:PRODUCT_NAME_TO_ID=针织毛线帽 => hasCategoryWord, productIdIn=CLOTH-HAT-058, productItemsIn=CLOTH-HAT-058×1
+TABLE:PRODUCT_NAME_TO_ID=针织毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-010, productItemsIn=CLOTH-SWEATER-010×1
+TABLE:PRODUCT_NAME_TO_ID=针织连衣长裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-048, productItemsIn=CLOTH-DRESS-048×1
+TABLE:PRODUCT_NAME_TO_ID=长裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-PANTS-019, productItemsIn=CLOTH-PANTS-019×1
+TABLE:PRODUCT_NAME_TO_ID=阔腿牛仔裤 => hasCategoryWord, productIdIn=CLOTH-JEANS-018, productItemsIn=CLOTH-JEANS-018×1
+TABLE:PRODUCT_NAME_TO_ID=防风夹克 => hasCategoryWord, productIdIn=CLOTH-JACKET-006, productItemsIn=CLOTH-JACKET-006×1
+TABLE:PRODUCT_NAME_TO_ID=雪纺连衣裙 => hasCategoryWord, productIdIn=CLOTH-DRESS-005, productItemsIn=CLOTH-DRESS-005×1
+TABLE:PRODUCT_NAME_TO_ID=风衣 => catalogQueryFor=+领域词, productIdIn=CLOTH-WINDBREAKER-022, productItemsIn=CLOTH-WINDBREAKER-022×1
+TABLE:PRODUCT_NAME_TO_ID=马海毛宽松毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-036, productItemsIn=CLOTH-SWEATER-036×1
+TABLE:PRODUCT_NAME_TO_ID=驼色双面呢大衣 => hasCategoryWord, productIdIn=CLOTH-COAT-024, productItemsIn=CLOTH-COAT-024×1
+TABLE:PRODUCT_NAME_TO_ID=高弹瑜伽裤 => hasCategoryWord, productIdIn=CLOTH-SPORT-053, productItemsIn=CLOTH-SPORT-053×1
+TABLE:PRODUCT_NAME_TO_ID=高腰A字半身裙 => hasCategoryWord, productIdIn=CLOTH-SKIRT-007, productItemsIn=CLOTH-SKIRT-007×1
+TABLE:PRODUCT_NAME_TO_ID=高腰西装直筒裤 => hasCategoryWord, productIdIn=CLOTH-PANTS-042, productItemsIn=CLOTH-PANTS-042×1
+TABLE:PRODUCT_NAME_TO_ID=高领毛衣 => hasCategoryWord, productIdIn=CLOTH-SWEATER-016, productItemsIn=CLOTH-SWEATER-016×1
+TABLE:PRODUCT_NAME_TO_ID=黑色卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1
+TABLE:PRODUCT_NAME_TO_ID=黑色直筒休闲裤 => catalogQueryFor=+领域词, productIdIn=CLOTH-PANTS-019, productItemsIn=CLOTH-PANTS-019×1
+TABLE:PRODUCT_NAME_TO_ID=黑色短款羽绒服 => catalogQueryFor=+领域词, productIdIn=CLOTH-DOWN-023, productItemsIn=CLOTH-DOWN-023×1
+TABLE:PRODUCT_NAME_TO_ID=黑色连帽卫衣 => hasCategoryWord, productIdIn=CLOTH-HOODIE-004, productItemsIn=CLOTH-HOODIE-004×1
+TABLE:PURCHASE_CUES=下单 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买2件 => catalogQueryFor=+领域词, extractPurchaseQuantity=2, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买3件 => catalogQueryFor=+领域词, extractPurchaseQuantity=3, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买一个 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买一件 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买一套 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买一条 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=买两件 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=入手 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=创建订单 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=帮我下单 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=帮我买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=想买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=我想买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=我要下单 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=我要买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=拿一个 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=拿一件 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=拿一条 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=来一个 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=来一件 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=来一套 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=来一条 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=确认下单 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=立即购买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=给我买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=要买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:PURCHASE_CUES=购买 => catalogQueryFor=+领域词, hasPurchaseIntent
+TABLE:SHOPPING_CUES=买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=划算 => catalogQueryFor=+领域词
+TABLE:SHOPPING_CUES=可以买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=多少件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=建议 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:SHOPPING_CUES=怎么选 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:SHOPPING_CUES=推荐 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:SHOPPING_CUES=搭配 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=最多 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion
+TABLE:SHOPPING_CUES=比较 => catalogQueryFor=+领域词, isBudgetQuestion
+TABLE:SHOPPING_CUES=省钱 => catalogQueryFor=+领域词
+TABLE:SHOPPING_CUES=能买几件 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:SHOPPING_CUES=预算 => catalogQueryFor=+领域词, isAggregateQuestion, isBudgetQuestion, isCatalogOrBudgetQuestion, needsAgentWorkflow
+TABLE:TICKET_ACTION_CUES=关闭工单 => catalogQueryFor=+领域词, isTicketActionRequest, mentionsTicket, needsAgentWorkflow
+TABLE:TICKET_ACTION_CUES=升级工单 => catalogQueryFor=+领域词, isTicketActionRequest, mentionsTicket, needsAgentWorkflow
+TABLE:TICKET_ACTION_CUES=我要投诉 => catalogQueryFor=+领域词, isTicketActionRequest, needsAgentWorkflow
+TABLE:TICKET_ACTION_CUES=更新工单 => catalogQueryFor=+领域词, isTicketActionRequest, mentionsTicket, needsAgentWorkflow

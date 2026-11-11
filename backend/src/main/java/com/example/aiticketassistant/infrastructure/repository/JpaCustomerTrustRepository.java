@@ -7,6 +7,7 @@ import com.example.aiticketassistant.infrastructure.persistence.jpa.CustomerAddr
 import com.example.aiticketassistant.infrastructure.persistence.jpa.CustomerPaymentMethodJpaEntity;
 import com.example.aiticketassistant.infrastructure.persistence.jpa.SpringDataCustomerAddressJpaRepository;
 import com.example.aiticketassistant.infrastructure.persistence.jpa.SpringDataCustomerPaymentMethodJpaRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -40,6 +41,7 @@ public class JpaCustomerTrustRepository implements CustomerTrustRepository {
     public Optional<CustomerPaymentMethod> findPaymentMethodForCustomer(String paymentMethodId, String customerId) {
         return paymentMethodRepository.findByIdAndCustomerIdAndActiveTrue(paymentMethodId, customerId).map(this::toPaymentMethod);
     }
+
 
     private CustomerAddress toAddress(CustomerAddressJpaEntity entity) {
         return new CustomerAddress(entity.getId(), entity.getCustomerId(), entity.getRecipientName(), entity.getPhone(),

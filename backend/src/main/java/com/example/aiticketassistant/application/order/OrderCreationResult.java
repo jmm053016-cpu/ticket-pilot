@@ -1,6 +1,7 @@
 package com.example.aiticketassistant.application.order;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 public record OrderCreationResult(
@@ -8,5 +9,5 @@ public record OrderCreationResult(
         String orderStatus,
         String paymentStatus,
         BigDecimal amount,
-        Map<String, Object> product,
+        List<Map<String, Object>> items,
         String message) {}

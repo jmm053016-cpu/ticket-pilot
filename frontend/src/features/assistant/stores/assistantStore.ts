@@ -1,10 +1,16 @@
 import { create } from 'zustand'
-import type { AgentCard, AssistantEvent, OrderConfirmationPayload, OrderCreationResult, SourceCard, ToolCard } from '../types'
+import { deleteSession as deleteSessionApi, fetchSessionTurns, fetchSessions } from '../api/client'
+import type { AgentCard, AssistantEvent, ConversationTurnView, OrderConfirmationPayload, OrderCreationResult, SessionSummary, SourceCard, ToolCard } from '../types'
 
 type AssistantState = {
   connected: boolean
   streaming: boolean
   userMessage: string
+  /** 本轮刚发出去的那句话（输入框会被清空，所以回答区要留一行"你：…"，否则用户看不到自己问了什么）。 */
+  lastAskedMessage: string
+  sessionId: string
+  sessions: SessionSummary[]
+  history: ConversationTurnView[]
   answer: string
   events: AssistantEvent[]
   agents: AgentCard[]
@@ -15,15 +21,52 @@ type AssistantState = {
   orderCreationResult?: OrderCreationResult
   orderConfirmationError?: string
   setUserMessage: (value: string) => void
+  /**
+   * 取出「这一轮要发的话」并把输入框清空。
+   *
+   * <p>为什么放在 store 而不是组件里：清空输入框这件事有两条规则要一起成立 ——
+   * ① 发送后输入框必须变空（否则用户会以为没发出去、又点一次）；
+   * ② 空白（只有空格/换行）不能发出请求（空消息会白跑一遍工作流）。
+   * 放在 store 里就能直接单测，不必为了验证它去渲染组件 + mock EventSource。
+   *
+   * @return 去空格后的消息；空白输入返回 null（调用方应直接 return，不要发请求）。
+   */
+  consumeMessage: () => string | null
   start: () => void
   stop: () => void
   reset: () => void
+  newSession: () => void
+  loadSessions: () => Promise<void>
+  openSession: (sessionId: string) => Promise<void>
+  deleteSession: (sessionId: string) => Promise<void>
   setOrderCreationResult: (result: OrderCreationResult) => void
   setOrderConfirmationError: (message?: string) => void
   clearOrderConfirmation: () => void
   ingest: (event: AssistantEvent) => void
 }
 
+const SESSION_STORAGE_KEY = 'tp.assistant.sessionId'
+
+// 多轮记忆的锚点：刷新页面也要复用同一个 sessionId，所以落 localStorage
+function initialSessionId(): string {
+  try {
+    const stored = window.localStorage.getItem(SESSION_STORAGE_KEY)
+    if (stored) return stored
+    const created = crypto.randomUUID()
+    window.localStorage.setItem(SESSION_STORAGE_KEY, created)
+    return created
+  } catch {
+    return crypto.randomUUID()
+  }
+}
+
+function persistSessionId(sessionId: string) {
+  try {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
+  } catch {
+    /* 隐私模式下写不了就不写，本次会话内仍然可用 */
+  }
+}
 const initialAgents: AgentCard[] = [
   { name: 'Intent Agent', status: 'idle', detail: '意图识别 / 参数抽取 / Tool Routing' },
   { name: 'Order Agent', status: 'idle', detail: '订单与工单业务决策' },
@@ -44,19 +87,62 @@ function toSourceCard(value: unknown): SourceCard {
   }
 }
 
-export const useAssistantStore = create<AssistantState>((set) => ({
+export const useAssistantStore = create<AssistantState>((set, get) => ({
   connected: false,
   streaming: false,
-  userMessage: '支付成功但订单没生成怎么办',
+  // 输入框初始为空：预填示例问题会让人分不清"这是提示"还是"我要发的字"
+  userMessage: '',
+  lastAskedMessage: '',
+  sessionId: initialSessionId(),
+  sessions: [],
+  history: [],
   answer: '',
   events: [],
   agents: initialAgents,
   tools: [],
   sources: [],
   setUserMessage: (value) => set({ userMessage: value }),
+  consumeMessage: () => {
+    const message = get().userMessage.trim()
+    if (!message) return null
+    set({ userMessage: '', lastAskedMessage: message })
+    return message
+  },
   start: () => set({ connected: true, streaming: true, answer: '', events: [], tools: [], sources: [], pendingOrderConfirmation: undefined, orderCreationResult: undefined, orderConfirmationError: undefined, agents: initialAgents }),
   stop: () => set({ connected: false, streaming: false }),
-  reset: () => set({ answer: '', events: [], tools: [], sources: [], ticket: undefined, pendingOrderConfirmation: undefined, orderCreationResult: undefined, orderConfirmationError: undefined, agents: initialAgents }),
+  reset: () => set({ history: [], answer: '', events: [], tools: [], sources: [], ticket: undefined, lastAskedMessage: '', pendingOrderConfirmation: undefined, orderCreationResult: undefined, orderConfirmationError: undefined, agents: initialAgents }),
+  newSession: () => set(() => {
+    const sessionId = crypto.randomUUID()
+    persistSessionId(sessionId)
+    return { sessionId, userMessage: '', lastAskedMessage: '', history: [], answer: '', events: [], tools: [], sources: [], ticket: undefined, pendingOrderConfirmation: undefined, orderCreationResult: undefined, orderConfirmationError: undefined, agents: initialAgents }
+  }),
+  loadSessions: async () => {
+    try {
+      const sessions = await fetchSessions()
+      set({ sessions })
+    } catch (error) {
+      console.error('加载会话列表失败', error)
+    }
+  },
+  openSession: async (sessionId) => {
+    persistSessionId(sessionId)
+    let history: ConversationTurnView[] = []
+    try {
+      history = await fetchSessionTurns(sessionId)
+    } catch (error) {
+      console.error('加载会话历史失败', error)
+    }
+    set({ sessionId, userMessage: '', lastAskedMessage: '', history, answer: '', events: [], tools: [], sources: [], ticket: undefined, pendingOrderConfirmation: undefined, orderCreationResult: undefined, orderConfirmationError: undefined, agents: initialAgents })
+  },
+  deleteSession: async (targetSessionId) => {
+    await deleteSessionApi(targetSessionId)
+    // 删的是当前会话：换一个新的，避免继续往已删除的 sessionId 里写
+    if (get().sessionId === targetSessionId) {
+      get().newSession()
+    }
+    const sessions = await fetchSessions()
+    set({ sessions })
+  },
   setOrderCreationResult: (result) => set({ orderCreationResult: result, pendingOrderConfirmation: undefined, orderConfirmationError: undefined }),
   setOrderConfirmationError: (message) => set({ orderConfirmationError: message }),
   clearOrderConfirmation: () => set({ pendingOrderConfirmation: undefined, orderConfirmationError: undefined }),

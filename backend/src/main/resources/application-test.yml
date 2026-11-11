@@ -12,3 +12,20 @@ spring:
 assistant:
   ai:
     enable-real-client: false
+  # 测试不需要登录：关掉鉴权，接口仍按参数 customerId 工作（鉴权本身由 AuthSmokeTest 用
+  # 自己的 @SpringBootTest(properties=...) 打开后单独验证）
+  auth:
+    enabled: false
+  # 定时清理在测试里不跑（会动数据）；清理逻辑由 AssistantSmokeTest 直接调 service 验证
+  retention:
+    enabled: false
+  # 意图决策模式：测试跑的是规则兜底引擎，明确用 LEGACY（关键词层），与线上 model-first 解耦；
+  # 需要验证"模型优先"结构的用例在自己的 @SpringBootTest(properties=...) 里覆盖
+  intent:
+    mode: legacy
+  retrieval:
+    # 测试必须离线且确定：仓库根的 .env 可能把 EMBEDDING_PROVIDER 设成 openai-compatible（真语义向量），
+    # 那会让 @SpringBootTest 在 fit() 时真的发 HTTP 请求。这里强制回本地哈希实现。
+    # 需要验证语义向量装配的用例（SemanticEmbeddingWiringTest）在自己的 @SpringBootTest(properties=…)
+    # 里覆盖 —— 内联属性优先级高于本文件。
+    embedding-provider: hash

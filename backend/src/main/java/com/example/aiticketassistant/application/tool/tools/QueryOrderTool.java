@@ -1,5 +1,6 @@
 package com.example.aiticketassistant.application.tool.tools;
 
+import com.example.aiticketassistant.application.routing.QuestionSignals;
 import com.example.aiticketassistant.application.tool.ToolExecutor;
 import com.example.aiticketassistant.application.tool.ToolMetadata;
 import com.example.aiticketassistant.application.tool.ToolNames;
@@ -78,16 +79,9 @@ public class QueryOrderTool implements ToolExecutor {
                 "businessSummary", order.aiBusinessSummary());
     }
 
+    /** 订单列表判定走唯一口径（见 {@code QuestionSignals}），本工具不再自带一份关键词表。 */
     private boolean isOrderListRequest(String message) {
-        String value = message == null ? "" : message;
-        return value.contains("几个订单")
-                || value.contains("多少订单")
-                || value.contains("一共")
-                || value.contains("所有订单")
-                || value.contains("全部订单")
-                || value.contains("我的订单")
-                || value.contains("下了什么订单")
-                || value.contains("展示") && value.contains("订单");
+        return QuestionSignals.isOrderListRequest(message);
     }
 
     private String string(Map<String, Object> args, String key, String fallback) {

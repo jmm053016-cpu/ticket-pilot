@@ -68,6 +68,25 @@ public class Order {
         return "订单状态为 " + orderStatus + "，支付状态为 " + paymentStatus + "。";
     }
 
+    /**
+     * 能不能在对话里直接取消：只有**未支付、未进入履约**的订单可以。
+     *
+     * <p>已支付订单一律走退款申请（见 {@code RefundApplicationService}）—— 对话里不动钱。
+     */
+    public boolean canCancel() {
+        return orderStatus == OrderStatus.CREATED && paymentStatus == PaymentStatus.UNPAID;
+    }
+
+    /** 取消订单（调用方负责：校验 {@link #canCancel()}、释放预留库存、落库）。 */
+    public void cancel() {
+        if (!canCancel()) {
+            throw new IllegalStateException("Order cannot be cancelled: " + orderNo
+                    + " orderStatus=" + orderStatus + " paymentStatus=" + paymentStatus);
+        }
+        orderStatus = OrderStatus.CANCELLED;
+        updatedAt = Instant.now();
+    }
+
     public void markFailed() {
         orderStatus = OrderStatus.FAILED;
         updatedAt = Instant.now();

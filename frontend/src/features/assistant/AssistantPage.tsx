@@ -1,9 +1,11 @@
-import { Activity, Bot, ShieldCheck } from 'lucide-react'
+import { Activity, Bot, RefreshCw, ShieldCheck } from 'lucide-react'
 import { AgentWorkflowBoard } from './components/AgentWorkflowBoard'
+import { CartPanel } from './components/CartPanel'
 import { Composer } from './components/Composer'
 import { OrderConfirmationCard } from './components/OrderConfirmationCard'
 import { ProductCatalogPanel } from './components/ProductCatalogPanel'
 import { RagSourcesPanel } from './components/RagSourcesPanel'
+import { SessionList } from './components/SessionList'
 import { StreamingAnswer } from './components/StreamingAnswer'
 import { TicketStatusPanel } from './components/TicketStatusPanel'
 import { ToolCallCard } from './components/ToolCallCard'
@@ -11,7 +13,7 @@ import { TraceTimeline } from './components/TraceTimeline'
 import { useAssistantStore } from './stores/assistantStore'
 
 export function AssistantPage() {
-  const { connected, streaming } = useAssistantStore()
+  const { connected, streaming, sessionId, newSession } = useAssistantStore()
   return (
     <main className="relative min-h-screen px-4 py-6 md:px-8">
       <div className="orb pointer-events-none fixed left-10 top-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
@@ -27,9 +29,21 @@ export function AssistantPage() {
             <h1 className="text-2xl font-semibold text-white md:text-4xl">AI Ticket Assistant</h1>
           </div>
         </div>
-        <div className="hidden items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 md:flex">
-          <Activity size={16} className={streaming ? 'animate-pulse text-emerald-200' : 'text-slate-500'} />
-          {connected ? 'SSE Connected' : 'Ready'}
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs text-slate-500 lg:inline">会话 {sessionId.slice(-8)}</span>
+          <button
+            onClick={newSession}
+            disabled={streaming}
+            title="开启新会话（清空上下文记忆）"
+            className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:border-cyan-300/40 hover:text-cyan-100 disabled:opacity-50"
+          >
+            <RefreshCw size={15} />
+            新会话
+          </button>
+          <div className="hidden items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 md:flex">
+            <Activity size={16} className={streaming ? 'animate-pulse text-emerald-200' : 'text-slate-500'} />
+            {connected ? 'SSE Connected' : 'Ready'}
+          </div>
         </div>
       </header>
 
@@ -42,6 +56,7 @@ export function AssistantPage() {
             <p className="text-sm leading-6 text-slate-400">AI智能客服</p>
           </div>
           <Composer />
+          <SessionList />
           <ProductCatalogPanel />
           <AgentWorkflowBoard />
         </aside>
@@ -52,6 +67,7 @@ export function AssistantPage() {
         </section>
 
         <aside className="space-y-5">
+          <CartPanel />
           <OrderConfirmationCard />
           <ToolCallCard />
           <RagSourcesPanel />

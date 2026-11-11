@@ -19,12 +19,6 @@ public class OrderConfirmationJpaEntity {
     @Column(nullable = false)
     private String customerId;
     @Column(nullable = false)
-    private String productId;
-    @Column(nullable = false)
-    private int quantity;
-    @Column(nullable = false)
-    private BigDecimal unitPrice;
-    @Column(nullable = false)
     private BigDecimal totalAmount;
     @Column(nullable = false)
     private String addressId;
@@ -47,12 +41,6 @@ public class OrderConfirmationJpaEntity {
     public void setSessionId(String sessionId) { this.sessionId = sessionId; }
     public String getCustomerId() { return customerId; }
     public void setCustomerId(String customerId) { this.customerId = customerId; }
-    public String getProductId() { return productId; }
-    public void setProductId(String productId) { this.productId = productId; }
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     public String getAddressId() { return addressId; }

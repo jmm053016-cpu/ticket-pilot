@@ -20,7 +20,8 @@ class AssistantStreamControllerTest {
         AssistantWorkflowService service = mock(AssistantWorkflowService.class);
         when(service.stream(any())).thenReturn(Flux.just(AssistantEvent.of(AssistantEventType.FINAL, "ok", Map.of("done", true))));
         AssistantStreamController controller = new AssistantStreamController(service);
-        var response = controller.stream("hello", "CUST", null, "S");
+        // 鉴权关闭时 exchange 可为 null（AuthContext.resolveCustomer 会退回参数）
+        var response = controller.stream("hello", "CUST", null, "S", null);
         assertThat(response.getHeaders().getCacheControl()).contains("no-cache");
         assertThat(response.getHeaders().getFirst("X-Accel-Buffering")).isEqualTo("no");
         StepVerifier.create(response.getBody())

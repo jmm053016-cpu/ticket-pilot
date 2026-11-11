@@ -1,0 +1,38 @@
+# 意图/动作评测集（2026-11-11）
+# 格式：用户原句 <TAB> 期望的工具集合（逗号分隔，顺序无关；NONE = 不应调用任何工具）
+# 用途：对比 legacy（关键词优先）与 model-first（模型优先）两种决策模式的动作正确率。
+#       scripts/intent-eval.ps1 会逐条跑 /assistant/stream 并核对 tool_call 事件。
+#
+# 维护约定：线上发现"判错"的真实说法，先加到这里（并写期望值），再改代码 —— 这样回归才有依据。
+把米色帆布双肩包加入购物车	ADD_TO_CART
+我想要买个切尔西短靴、藏青帆布鞋、深灰针织开衫。先帮我加入购物车	ADD_TO_CART
+把藏青帆布鞋加入购物车	ADD_TO_CART
+我想要买军绿工装夹克、轻薄防风夹克、复古牛仔夹克，先帮我加入到购物车先	ADD_TO_CART
+我的购物车里有什么	VIEW_CART
+购物车里还剩什么	VIEW_CART
+购物车里还有哪些东西	VIEW_CART
+把购物车里的都下单	CREATE_ORDER
+我要买一件米色帆布双肩包	CREATE_ORDER
+帮我下单 2 件基础纯棉白色T恤	CREATE_ORDER
+基础纯棉白色T恤多少钱	SEARCH_KNOWLEDGE
+蓝色牛津纺衬衫多少钱	SEARCH_KNOWLEDGE
+偏光太阳镜多少钱	SEARCH_KNOWLEDGE
+1000元预算可以怎么搭配	SEARCH_KNOWLEDGE,PLAN_BUDGET
+我有1000元最多可以买几件衣服	SEARCH_KNOWLEDGE,PLAN_BUDGET
+我的订单有哪些	QUERY_ORDER
+订单 ORD-1001 到哪了	QUERY_ORDER
+帮我取消订单 ORD-AI-BEC2138C	CANCEL_ORDER
+我要退款 ORD-AI-BEC2138C	REQUEST_REFUND
+我的退款到哪了	QUERY_REFUND
+我要退货 ORD-AI-BEC2138C	REQUEST_RETURN
+我的退货到哪了	QUERY_RETURN
+我有几张优惠券	QUERY_ACCOUNT
+我的收货地址是什么	QUERY_ACCOUNT
+确认收货	CREATE_TICKET
+我想修改收货地址	CREATE_TICKET
+创建支付失败工单	CREATE_TICKET
+你好	NONE
+帮我写一首诗	NONE
+购物车里的东西会自动清空吗	SEARCH_KNOWLEDGE
+退款要几天到账	SEARCH_KNOWLEDGE
+你能做什么	NONE

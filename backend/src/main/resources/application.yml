@@ -4,8 +4,30 @@ server:
 spring:
   application:
     name: ai-ticket-assistant
+  config:
+    # 把仓库根目录的 .env（已被 .gitignore 忽略，不进仓库）当 properties 读进来，
+    # 这样 AI_PROVIDER / DEEPSEEK_API_KEY 等密钥类配置直接从 .env 生效，不会写进仓库。
+    # - 之所以要显式 import：Spring Boot 原生**不读 .env**，只有 docker-compose 会读它。
+    # - optional: 文件不存在不报错（容器部署时由 compose 注入环境变量，不依赖此文件）。
+    # - 两条路径是为了兼容不同的工作目录：IDEA 里跑通常是 backend/（→ ../.env），
+    #   在仓库根目录跑 jar 则是 .env。
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+      - optional:file:../../.env[.properties]
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/ai_ticket_assistant?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    # 本机开发默认连 Docker 里的 MySQL：docker-compose 把容器 3306 映射到宿主机 13306。
+    #
+    # 【时区设计：表里直接显示北京时间，同时写入不错】
+    #   MySQL 全局 time_zone = '+08:00'（见 docker-compose 的 --default-time-zone），
+    #   所以 Navicat / IDEA / 命令行的会话都是 +08:00，直接 SELECT 表就是北京时间。
+    #
+    #   但 Hibernate 6 会把 Instant 归一化成「UTC 墙钟时间」再绑定（JDBC 类型 TIMESTAMP_UTC），
+    #   只有当**本连接**的会话时区是 UTC 时才自洽。所以这里用 forceConnectionTimeZoneToSession
+    #   把"应用自己的连接"单独钉成 UTC：应用写得对，人看得顺。
+    #   ⚠ 不要删这两个参数，也不要把它改成 Asia/Shanghai —— 那样写入会整体偏 -8 小时（实测）。
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:13306/ai_ticket_assistant?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}
+    # 若改用宿主机自带 MySQL（监听 3306），覆盖 URL 时同样保留这两个时区参数。
     username: ${SPRING_DATASOURCE_USERNAME:app}
     password: ${SPRING_DATASOURCE_PASSWORD:app}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -32,22 +54,64 @@ springdoc:
     path: /swagger-ui.html
 
 assistant:
+  # ===== 鉴权（2026-11-09，演示级）=====
+  auth:
+    # true：所有 /assistant/** 与 /admin/** 都要令牌（POST /auth/login 换取）；
+    # false：退回"参数即身份"的演示模式（测试用 application-test.yml 关掉了）
+    enabled: ${AUTH_ENABLED:true}
+    token-ttl-hours: ${AUTH_TOKEN_TTL_HOURS:24}
+  # ===== 数据保留与清理（默认关闭：清理是破坏性操作）=====
+  # ===== 意图决策模式（2026-11-11）=====
+  # auto（默认）：真模型 → 模型优先（模型挑工具、关键词兜底）；fallback 规则引擎 → 关键词层
+  # model-first：强制模型优先（即使 provider=fallback，用于对比实验）
+  # legacy：旧的"关键词覆盖优先"，仅用于 A/B 回滚
+  intent:
+    mode: ${ASSISTANT_INTENT_MODE:auto}
+  retention:
+    enabled: ${RETENTION_ENABLED:false}
+    cron: ${RETENTION_CRON:0 30 3 * * *}
+    confirmation-days: ${RETENTION_CONFIRMATION_DAYS:7}
+    cart-days: ${RETENTION_CART_DAYS:30}
+    session-days: ${RETENTION_SESSION_DAYS:30}
+    trace-days: ${RETENTION_TRACE_DAYS:14}
   ai:
+    # provider: deepseek（真流式）| qwen | fallback（规则兜底，默认）
     provider: ${AI_PROVIDER:fallback}
-    anthropic-api-key: ${ANTHROPIC_API_KEY:}
     qwen-api-key: ${QWEN_API_KEY:}
-    model: ${ANTHROPIC_MODEL:claude-opus-4-7}
     qwen-model: ${QWEN_MODEL:qwen-plus}
-    max-tokens: ${ANTHROPIC_MAX_TOKENS:16000}
     qwen-max-tokens: ${QWEN_MAX_TOKENS:2000}
     deepseek-api-key: ${DEEPSEEK_API_KEY:}
     deepseek-model: ${DEEPSEEK_MODEL:deepseek-chat}
     deepseek-base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1/chat/completions}
     deepseek-max-tokens: ${DEEPSEEK_MAX_TOKENS:2000}
-    timeout: ${ANTHROPIC_TIMEOUT:PT30S}
-    enable-real-client: ${ANTHROPIC_ENABLE_REAL_CLIENT:false}
-  chroma:
-    base-url: ${CHROMA_BASE_URL:http://localhost:8000}
-    collection: ${CHROMA_COLLECTION:ai_ticket_knowledge}
+    # 单次调用超时（含流式相邻分片的空闲超时），DeepSeek 与 Qwen 共用
+    timeout: ${AI_TIMEOUT:PT30S}
+  # 检索：向量那一路默认用本地确定性 embedding（无需外部服务）+ BM25 融合。
+  # 以前这里配的是 ChromaDB（恒返回空、探活还打废弃 v1 接口），2026-11-04 已移除，见 PROJECT_OVERVIEW.md §6.5 ⑤。
+  retrieval:
+    # hash（默认：离线/零成本/确定性，但不懂语义）| openai-compatible（真语义模型）
+    embedding-provider: ${EMBEDDING_PROVIDER:hash}
+    # 仅 openai-compatible 生效。默认 DashScope compatible-mode 的 text-embedding-v3；
+    # 换 SiliconFlow / Ollama / vLLM 等任何 OpenAI 兼容服务只改这三项。
+    embedding-base-url: ${EMBEDDING_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    embedding-model: ${EMBEDDING_MODEL:text-embedding-v3}
+    embedding-api-key: ${EMBEDDING_API_KEY:${QWEN_API_KEY:}}
+    embedding-dimensions: ${EMBEDDING_DIMENSIONS:1024}
+  # 提示词热加载（§5.4.4）：改 prompts/*.md 不用重启。
+  # 本地开发把 dir 指向源码目录，改完保存即生效（不需要 Build 复制到 target/classes）；
+  # 留空则读 classpath（IDEA/Maven 跑的是 target/classes，需要 Build 一次才会更新）。
+  prompts:
+    dir: ${PROMPTS_DIR:}
+    hot-reload: ${PROMPTS_HOT_RELOAD:true}
+    check-interval: ${PROMPTS_CHECK_INTERVAL:PT1S}
+  # 会话历史注入提示词的上限（成本控制）。
+  # 历史按「用户: … / 助手: …」整段拼进 4 个提示词，助手的回答常常几百上千字（价格表/明细表），
+  # 不设上限的话长会话每轮 2 次模型调用都会被历史撑爆：又慢又贵，还容易把模型带偏。
+  # 裁剪口径（单条截断 → 总量预算 → 最新一轮必留）见 ConversationHistory。
+  conversation:
+    max-turns: ${CHAT_HISTORY_MAX_TURNS:6}                  # 回看几轮（上限 20，受 JPA 单次取 40 条消息限制）
+    max-prompt-chars: ${CHAT_HISTORY_MAX_CHARS:1200}          # 整块历史的字符预算（中文 1 字 ≈ 1 token 量级）
+    max-user-chars: ${CHAT_HISTORY_MAX_USER_CHARS:120}        # 单条用户消息上限
+    max-answer-chars: ${CHAT_HISTORY_MAX_ANSWER_CHARS:300}    # 单条助手回答上限（保留开头 = 结论）
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}

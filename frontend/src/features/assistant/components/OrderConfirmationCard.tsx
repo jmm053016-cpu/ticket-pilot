@@ -54,6 +54,16 @@ export function OrderConfirmationCard() {
           <p>订单状态：{result.orderStatus}</p>
           <p>支付状态：{result.paymentStatus}</p>
           <p>金额：¥{Number(result.amount).toFixed(2)}</p>
+          {result.items && result.items.length > 0 && (
+            <ul className="space-y-1 rounded-2xl bg-white/5 p-3 text-xs text-slate-300">
+              {result.items.map((item, index) => (
+                <li key={index}>
+                  {String(item.name ?? item.productId ?? '商品')} × {Number(item.quantity ?? 0)}
+                  {item.lineAmount !== undefined && `（¥${Number(item.lineAmount).toFixed(2)}）`}
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="rounded-2xl bg-emerald-300/10 p-3 text-emerald-100">{result.message}</p>
         </div>
       </section>
@@ -69,11 +79,29 @@ export function OrderConfirmationCard() {
       <div className="space-y-3 text-sm text-slate-300">
         <p className="rounded-2xl bg-amber-300/10 p-3 text-amber-100">{pending?.message}</p>
         <div className="grid gap-2 rounded-2xl bg-white/5 p-3">
-          <span>商品：{pending?.productName}</span>
-          <span>商品 ID：{pending?.productId}</span>
-          <span>数量：{pending?.quantity}</span>
-          <span>单价：¥{Number(pending?.unitPrice ?? 0).toFixed(2)}</span>
-          <span>总价：¥{Number(pending?.totalAmount ?? 0).toFixed(2)}</span>
+          <table className="w-full text-left text-xs">
+            <thead className="text-slate-400">
+              <tr>
+                <th className="py-1 font-normal">商品</th>
+                <th className="py-1 font-normal">数量</th>
+                <th className="py-1 font-normal">单价</th>
+                <th className="py-1 text-right font-normal">小计</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(pending?.items ?? []).map((item) => (
+                <tr key={item.productId} className="border-t border-white/5">
+                  <td className="py-1 text-slate-200">{item.productName}</td>
+                  <td className="py-1">{item.quantity}</td>
+                  <td className="py-1">¥{Number(item.unitPrice).toFixed(2)}</td>
+                  <td className="py-1 text-right">¥{Number(item.lineAmount).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <span className="text-sm text-slate-200">
+            共 {pending?.totalQuantity ?? 0} 件，总价 ¥{Number(pending?.totalAmount ?? 0).toFixed(2)}
+          </span>
           <span>收货：{pending?.address.display}</span>
           <span>支付方式：{pending?.paymentMethod.display}</span>
         </div>

@@ -8,6 +8,7 @@ import com.example.aiticketassistant.domain.customer.CustomerPaymentMethod;
 import com.example.aiticketassistant.domain.customer.CustomerTrustRepository;
 import com.example.aiticketassistant.domain.order.Order;
 import com.example.aiticketassistant.domain.order.OrderConfirmation;
+import com.example.aiticketassistant.domain.order.OrderConfirmationItem;
 import com.example.aiticketassistant.domain.order.OrderConfirmationRepository;
 import com.example.aiticketassistant.domain.order.OrderConfirmationStatus;
 import com.example.aiticketassistant.domain.order.OrderItem;
@@ -17,6 +18,8 @@ import com.example.aiticketassistant.domain.shared.DomainException;
 import com.example.aiticketassistant.domain.shared.NotFoundException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -51,18 +54,37 @@ public class ConfirmOrderService {
             confirmationRepository.save(confirmation);
             throw new DomainException("订单确认已过期，请重新发起下单");
         }
-        Product product = productRepository.findById(confirmation.productId())
-                .filter(Product::active)
-                .orElseThrow(() -> new DomainException("商品不存在或已下架: " + confirmation.productId()));
-        ProductInventory inventory = productRepository.findInventory(product.id())
-                .orElseThrow(() -> new DomainException("商品库存不存在: " + product.id()));
-        BigDecimal currentTotal = product.price().multiply(BigDecimal.valueOf(confirmation.quantity()));
-        if (product.price().compareTo(confirmation.unitPrice()) != 0 || currentTotal.compareTo(confirmation.totalAmount()) != 0) {
+        // 逐行复核 + 预留库存：任一行价格变了/库存不足，整单失败（不会建出半张订单）
+        List<OrderItem> orderItems = new ArrayList<>();
+        List<Map<String, Object>> itemViews = new ArrayList<>();
+        List<ProductInventory> reserved = new ArrayList<>();
+        BigDecimal currentTotal = BigDecimal.ZERO;
+        for (OrderConfirmationItem item : confirmation.items()) {
+            Product product = productRepository.findById(item.productId())
+                    .filter(Product::active)
+                    .orElseThrow(() -> new DomainException("商品不存在或已下架: " + item.productId()));
+            ProductInventory inventory = productRepository.findInventory(product.id())
+                    .orElseThrow(() -> new DomainException("商品库存不存在: " + product.id()));
+            if (product.price().compareTo(item.unitPrice()) != 0) {
+                confirmation.fail();
+                confirmationRepository.save(confirmation);
+                throw new DomainException("商品价格已变化，请重新确认订单: " + product.name());
+            }
+            reserved.add(inventory.reserve(item.quantity()));
+            currentTotal = currentTotal.add(item.lineAmount());
+            orderItems.add(new OrderItem("", product.id(), product.id(), product.name(), item.quantity(), product.price()));
+            itemViews.add(Map.of(
+                    "productId", product.id(),
+                    "name", product.name(),
+                    "quantity", item.quantity(),
+                    "unitPrice", product.price(),
+                    "lineAmount", item.lineAmount()));
+        }
+        if (currentTotal.compareTo(confirmation.totalAmount()) != 0) {
             confirmation.fail();
             confirmationRepository.save(confirmation);
-            throw new DomainException("商品价格已变化，请重新确认订单");
+            throw new DomainException("订单金额已变化，请重新确认订单");
         }
-        ProductInventory reserved = inventory.reserve(confirmation.quantity());
         CustomerAddress address = customerTrustRepository.findAddressForCustomer(confirmation.addressId(), confirmation.customerId())
                 .orElseThrow(() -> new DomainException("收货地址不属于当前客户或不可用"));
         CustomerPaymentMethod paymentMethod = customerTrustRepository.findPaymentMethodForCustomer(confirmation.paymentMethodId(), confirmation.customerId())
@@ -78,8 +100,11 @@ public class ConfirmOrderService {
                 paymentMethod.id(),
                 confirmation.id());
         Order saved = orderRepository.save(order);
-        orderItemRepository.save(new OrderItem(saved.id().value(), product.id(), product.id(), product.name(), confirmation.quantity(), product.price()));
-        productRepository.saveInventory(reserved);
+        for (OrderItem item : orderItems) {
+            orderItemRepository.save(new OrderItem(saved.id().value(), item.productId(), item.sku(), item.name(),
+                    item.quantity(), item.price()));
+        }
+        reserved.forEach(productRepository::saveInventory);
         confirmation.confirm();
         confirmationRepository.save(confirmation);
 
@@ -88,11 +113,10 @@ public class ConfirmOrderService {
                 saved.orderStatus().name(),
                 saved.paymentStatus().name(),
                 saved.amount(),
-                Map.of("productId", product.id(), "name", product.name(), "quantity", confirmation.quantity(), "unitPrice", product.price()),
-                "订单已创建，但不会自动扣款；支付状态保持为 " + saved.paymentStatus().name());
+                List.copyOf(itemViews),
+                "订单已创建（%d 件商品），但不会自动扣款；支付状态保持为 %s"
+                        .formatted(confirmation.totalQuantity(), saved.paymentStatus().name()));
     }
-
-    @Transactional
     public Map<String, Object> cancel(String confirmationId, ConfirmOrderRequest request) {
         OrderConfirmation confirmation = loadOwnedPending(confirmationId, request);
         confirmation.cancel();

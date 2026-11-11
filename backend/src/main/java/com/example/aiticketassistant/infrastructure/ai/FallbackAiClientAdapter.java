@@ -3,33 +3,47 @@ package com.example.aiticketassistant.infrastructure.ai;
 import com.example.aiticketassistant.application.agent.AiClientPort;
 import com.example.aiticketassistant.application.agent.AiRequest;
 import com.example.aiticketassistant.application.agent.AiResponse;
+import com.example.aiticketassistant.application.routing.PurchaseItem;
+import com.example.aiticketassistant.application.routing.QuestionSignals;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+/**
+ * 规则兜底替身（无 API Key 或模型不可用时生效）。
+ *
+ * <p>它返回的意图 JSON 必须和真实模型**同一套口径**，否则"有没有配 Key"会改变系统行为。
+ * 因此订单列表、下单意图、商品识别、购买数量一律走 {@link QuestionSignals}（唯一关键词表），
+ * 本类只保留"生成哪段 JSON 文本"的逻辑。
+ */
 @Component
 @ConditionalOnProperty(prefix = "assistant.ai", name = "provider", havingValue = "fallback", matchIfMissing = true)
 public class FallbackAiClientAdapter implements AiClientPort {
-    private static final Pattern PRODUCT_ID_PATTERN = Pattern.compile("CLOTH-[A-Z]+-\\d{3}");
 
     @Override
     public AiResponse complete(AiRequest request) {
         String user = request.userPrompt() == null ? "" : request.userPrompt();
-        String message = extractUserMessage(user);
+        String message = resolveUserMessage(request);
         if (request.expectJson()) {
-            if (isOrderListRequest(message)) {
+            if (QuestionSignals.isOrderListRequest(message)) {
                 return AiResponse.fallback("""
                         {"intent":"QUERY_ORDER","title":"订单汇总查询","priority":"MEDIUM","confidence":0.58,"tool_calls":[{"tool":"QUERY_ORDER","arguments":{}}]}
                         """);
             }
-            String productId = extractProductId(message);
-            if (hasPurchaseIntent(message) && productId != null) {
+            List<PurchaseItem> purchaseItems = QuestionSignals.purchaseItems(message);
+            if (!purchaseItems.isEmpty()) {
+                // 一个 CREATE_ORDER 带 items[] 数组（确认单支持多明细）：少给一件就是静默丢单（§5.4.2）
+                String items = purchaseItems.stream()
+                        .map(item -> "{\"productId\":\"%s\",\"quantity\":%d}"
+                                .formatted(item.productId(), item.quantity()))
+                        .collect(java.util.stream.Collectors.joining(","));
                 return AiResponse.fallback("""
-                        {"intent":"GENERAL_SUPPORT","title":"安全下单确认","priority":"MEDIUM","confidence":0.6,"tool_calls":[{"tool":"CREATE_ORDER","arguments":{"productId":"%s","quantity":%d}}]}
-                        """.formatted(productId, extractQuantity(message)));
+                        {"intent":"GENERAL_SUPPORT","title":"安全下单确认","priority":"MEDIUM","confidence":0.6,"tool_calls":[{"tool":"CREATE_ORDER","arguments":{"items":[%s]}}]}
+                        """.formatted(items));
             }
-            if (hasPurchaseIntent(message)) {
+            if (QuestionSignals.hasPurchaseIntent(message)) {
                 return AiResponse.fallback("""
                         {"intent":"GENERAL_SUPPORT","title":"需要选择商品","priority":"MEDIUM","confidence":0.5,"tool_calls":[]}
                         """);
@@ -62,7 +76,7 @@ public class FallbackAiClientAdapter implements AiClientPort {
             return AiResponse.fallback(orderFallback(user));
         }
         if ("KnowledgeAgent".equals(request.agentName())) {
-            return AiResponse.fallback(knowledgeFallback(user));
+            return AiResponse.fallback(knowledgeFallback(user, message));
         }
         if ("DirectQwen".equals(request.agentName())) {
             return AiResponse.fallback(directFallback(message));
@@ -70,59 +84,31 @@ public class FallbackAiClientAdapter implements AiClientPort {
         return AiResponse.fallback("AI 服务未配置，当前使用本地规则兜底响应。");
     }
 
-    private boolean isOrderListRequest(String message) {
-        String value = message == null ? "" : message;
-        return value.contains("几个订单")
-                || value.contains("多少订单")
-                || value.contains("一共") && value.contains("订单")
-                || value.contains("所有订单")
-                || value.contains("全部订单")
-                || value.contains("我的订单")
-                || value.contains("买了") && value.contains("订单")
-                || value.contains("展示") && value.contains("订单");
-    }
-
+    /** 规则兜底的预算金额：解析不出时给 500，保证文案里总有数字。 */
     private int extractBudget(String message) {
-        Matcher matcher = Pattern.compile("(\\d+)\\s*元?").matcher(message == null ? "" : message);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1));
+        Integer amount = QuestionSignals.extractBudgetAmount(message);
+        return amount == null ? 500 : amount;
+    }
+
+    /** 「1000元最多可以买几件衣服」：品类词 + 预算计数问法，两者口径都在 QuestionSignals。 */
+    private boolean isMaxCountClothingQuestion(String message) {
+        return QuestionSignals.hasCategoryWord(message) && QuestionSignals.isBudgetCountingQuestion(message);
+    }
+
+    /**
+     * 解析「用户当前这句话」。
+     *
+     * <p>优先取 {@link AiRequest#structuredContext()} 里的 {@code userMessage}（调用方直接给），
+     * 解析提示词只作兜底：提示词里现在含会话历史与检索来源，按文本猜关键词会被历史污染。
+     */
+    private String resolveUserMessage(AiRequest request) {
+        if (request.structuredContext() != null) {
+            Object structured = request.structuredContext().get("userMessage");
+            if (structured != null && !String.valueOf(structured).isBlank()) {
+                return String.valueOf(structured);
+            }
         }
-        return 500;
-    }
-
-    private boolean hasPurchaseIntent(String message) {
-        return message.contains("买") || message.contains("购买") || message.contains("下单");
-    }
-
-    private String extractProductId(String message) {
-        String normalized = message == null ? "" : message;
-        Matcher matcher = PRODUCT_ID_PATTERN.matcher(normalized);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return productIdFromName(normalized);
-    }
-
-    private String productIdFromName(String message) {
-        if (message.contains("白色T恤") || message.contains("纯棉T恤") || message.contains("T恤")) return "CLOTH-TEE-001";
-        if (message.contains("牛津纺衬衫") || message.contains("蓝色衬衫") || message.contains("衬衫")) return "CLOTH-SHIRT-002";
-        if (message.contains("水洗牛仔裤") || message.contains("直筒牛仔裤") || message.contains("牛仔裤")) return "CLOTH-JEANS-003";
-        if (message.contains("连帽卫衣") || message.contains("黑色卫衣") || message.contains("卫衣")) return "CLOTH-HOODIE-004";
-        if (message.contains("雪纺连衣裙") || message.contains("碎花连衣裙") || message.contains("连衣裙")) return "CLOTH-DRESS-005";
-        if (message.contains("防风夹克") || message.contains("轻薄夹克") || message.contains("夹克")) return "CLOTH-JACKET-006";
-        if (message.contains("A字半身裙") || message.contains("半身裙")) return "CLOTH-SKIRT-007";
-        if (message.contains("Polo衫") || message.contains("POLO衫") || message.contains("polo衫")) return "CLOTH-POLO-008";
-        if (message.contains("羊毛混纺大衣") || message.contains("羊毛大衣") || message.contains("大衣")) return "CLOTH-COAT-009";
-        if (message.contains("针织毛衣") || message.contains("米色毛衣") || message.contains("毛衣")) return "CLOTH-SWEATER-010";
-        return null;
-    }
-
-    private int extractQuantity(String message) {
-        Matcher matcher = Pattern.compile("(?:买|购买|下单)\\s*(\\d+)\\s*(件|个|条|套)").matcher(message == null ? "" : message);
-        if (matcher.find()) {
-            return Math.max(1, Integer.parseInt(matcher.group(1)));
-        }
-        return 1;
+        return extractUserMessage(request.userPrompt() == null ? "" : request.userPrompt());
     }
 
     private String extractUserMessage(String userPrompt) {
@@ -152,12 +138,6 @@ public class FallbackAiClientAdapter implements AiClientPort {
             return "一般先进入订单详情查看退款入口，提交退款原因和凭证后等待审核；如果没有对应订单或入口，需要联系商家客服处理。";
         }
         return "这是普通咨询，我可以直接回答；如果要查询你的订单、账户或执行下单/退款等业务动作，需要进入业务流程。";
-    }
-
-    private boolean isMaxCountClothingQuestion(String message) {
-        String value = message == null ? "" : message;
-        return (value.contains("衣服") || value.contains("T恤") || value.contains("服装"))
-                && (value.contains("最多") || value.contains("几件") || value.contains("多少件"));
     }
 
     private String orderFallback(String userPrompt) {
@@ -195,18 +175,34 @@ public class FallbackAiClientAdapter implements AiClientPort {
         return answer.toString().trim();
     }
 
-    private String knowledgeFallback(String userPrompt) {
+    private String knowledgeFallback(String userPrompt, String question) {
         String sources = extractSources(userPrompt);
         if (sources.isBlank()) {
             return "未检索到直接匹配的知识库资料，建议转人工复核或补充问题细节。";
         }
-        if (userPrompt.contains("退款")) {
+        // 只判断「用户当前这句话」：整个 prompt 里含会话历史与检索来源，
+        // 若拿它做关键词匹配，历史里出现过的「退款」会把当前问题劫持成退款答复（已踩过）。
+        if (question.contains("退款")) {
             return "知识库建议：退款问题需先确认支付状态、退款渠道和预计到账时间。";
         }
-        if (userPrompt.contains("支付")) {
+        if (question.contains("支付")) {
             return "知识库建议：支付异常需保留支付凭证，核验支付流水后再判断补单或退款。";
         }
-        return "根据知识库检索结果：\n" + sources;
+        return "根据知识库：" + System.lineSeparator() + sources;
+    }
+
+    private String extractQuestion(String userPrompt) {
+        String marker = "User question:";
+        int start = userPrompt.indexOf(marker);
+        if (start < 0) {
+            return "";
+        }
+        int from = start + marker.length();
+        int end = userPrompt.indexOf("Retrieved sources:", from);
+        if (end < 0) {
+            end = userPrompt.length();
+        }
+        return userPrompt.substring(from, end).trim();
     }
 
     private String extractSources(String userPrompt) {

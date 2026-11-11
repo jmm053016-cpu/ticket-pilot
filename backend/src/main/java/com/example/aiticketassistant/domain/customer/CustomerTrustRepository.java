@@ -7,4 +7,5 @@ public interface CustomerTrustRepository {
     Optional<CustomerAddress> findAddressForCustomer(String addressId, String customerId);
     Optional<CustomerPaymentMethod> findDefaultPaymentMethod(String customerId);
     Optional<CustomerPaymentMethod> findPaymentMethodForCustomer(String paymentMethodId, String customerId);
+
 }

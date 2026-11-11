@@ -17,15 +17,22 @@ export type ToolCard = {
   payload: unknown
 }
 
+/** 确认卡片上的一行商品（一张确认单可含多件，见 PROJECT_OVERVIEW §5.3） */
+export type OrderConfirmationItemPayload = {
+  productId: string
+  productName: string
+  quantity: number
+  unitPrice: number
+  lineAmount: number
+}
+
 export type OrderConfirmationPayload = {
   confirmationId: string
   sessionId: string
   customerId: string
   message: string
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
+  items: OrderConfirmationItemPayload[]
+  totalQuantity: number
   totalAmount: number
   address: { id: string; display: string }
   paymentMethod: { id: string; display: string; methodType?: string }
@@ -37,7 +44,8 @@ export type OrderCreationResult = {
   orderStatus: string
   paymentStatus: string
   amount: number
-  product?: Record<string, unknown>
+  /** 下单成功后的明细（一单可多件） */
+  items?: Array<Record<string, unknown>>
   message: string
 }
 
@@ -48,4 +56,17 @@ export type SourceCard = {
   content?: string
   score?: number
   matchReason?: string
+}
+
+export type SessionSummary = {
+  sessionId: string
+  preview: string
+  messageCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type ConversationTurnView = {
+  userMessage: string
+  assistantAnswer: string
 }

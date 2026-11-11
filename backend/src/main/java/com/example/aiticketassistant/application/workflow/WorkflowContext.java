@@ -1,6 +1,7 @@
 package com.example.aiticketassistant.application.workflow;
 
 import com.example.aiticketassistant.application.agent.IntentResult;
+import com.example.aiticketassistant.application.conversation.ConversationTurn;
 import com.example.aiticketassistant.application.tool.ToolResult;
 import com.example.aiticketassistant.domain.knowledge.KnowledgeSearchResult;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ public class WorkflowContext {
     private final List<ToolResult> toolResults = new ArrayList<>();
     private final List<KnowledgeSearchResult> knowledgeResults = new ArrayList<>();
     private final Map<String, Object> memory = new LinkedHashMap<>();
+    /** 同一 sessionId 的最近若干轮历史（时间正序），启动时加载，供提示词注入。 */
+    private List<ConversationTurn> conversationHistory = List.of();
 
     public WorkflowContext(String sessionId, String customerId, String orderNo, String userMessage) {
         this.sessionId = sessionId;
@@ -46,4 +49,8 @@ public class WorkflowContext {
     public List<ToolResult> toolResults() { return toolResults; }
     public List<KnowledgeSearchResult> knowledgeResults() { return knowledgeResults; }
     public Map<String, Object> memory() { return memory; }
+    public List<ConversationTurn> conversationHistory() { return conversationHistory; }
+    public void conversationHistory(List<ConversationTurn> history) {
+        this.conversationHistory = history == null ? List.of() : List.copyOf(history);
+    }
 }

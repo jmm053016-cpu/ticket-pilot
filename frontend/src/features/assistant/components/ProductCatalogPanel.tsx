@@ -24,7 +24,7 @@ export function ProductCatalogPanel() {
         <Shirt size={18} className="text-cyan-200" />
         <h3 className="font-semibold text-white">服装商品目录</h3>
       </div>
-      <div className="space-y-2">
+      <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
         {products.length === 0 && <p className="text-sm text-slate-500">正在加载商品。</p>}
         {products.map((product) => (
           <div key={product.id} className="rounded-2xl bg-white/5 p-3 text-sm text-slate-300">

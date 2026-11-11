@@ -1,5 +1,7 @@
 package com.example.aiticketassistant.application.tool.tools;
 
+import com.example.aiticketassistant.application.ticket.TicketEventRecorder;
+import com.example.aiticketassistant.application.ticket.TicketEventTypes;
 import com.example.aiticketassistant.application.tool.ToolExecutor;
 import com.example.aiticketassistant.application.tool.ToolMetadata;
 import com.example.aiticketassistant.application.tool.ToolNames;
@@ -9,15 +11,18 @@ import com.example.aiticketassistant.domain.ticket.Ticket;
 import com.example.aiticketassistant.domain.ticket.TicketCategory;
 import com.example.aiticketassistant.domain.ticket.TicketPriority;
 import com.example.aiticketassistant.domain.ticket.TicketRepository;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CreateTicketTool implements ToolExecutor {
     private final TicketRepository ticketRepository;
+    private final TicketEventRecorder ticketEventRecorder;
 
-    public CreateTicketTool(TicketRepository ticketRepository) {
+    public CreateTicketTool(TicketRepository ticketRepository, TicketEventRecorder ticketEventRecorder) {
         this.ticketRepository = ticketRepository;
+        this.ticketEventRecorder = ticketEventRecorder;
     }
 
     @Override
@@ -44,6 +49,18 @@ public class CreateTicketTool implements ToolExecutor {
                 "status", saved.status().name(),
                 "priority", saved.priority().name(),
                 "category", saved.category().name());
+        // 工单时间线：创建事件（best-effort，写失败不影响工单本身）
+        Map<String, Object> event = new LinkedHashMap<>();
+        event.put("action", "CREATE");
+        event.put("title", saved.title());
+        event.put("status", saved.status().name());
+        event.put("priority", saved.priority().name());
+        event.put("category", saved.category().name());
+        event.put("customerId", saved.customerId());
+        event.put("source", "AI_TOOL");
+        event.put("traceId", context.trace().traceId());
+        event.put("sessionId", context.sessionId());
+        ticketEventRecorder.record(saved.id().value(), TicketEventTypes.TICKET_CREATED, event);
         context.remember("ticket", data);
         return ToolResult.success(ToolNames.CREATE_TICKET, data);
     }

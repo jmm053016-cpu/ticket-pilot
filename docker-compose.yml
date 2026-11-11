@@ -2,11 +2,17 @@ services:
   mysql:
     image: mysql:8.4
     container_name: ai-ticket-mysql
+    # 时区设计（重要）：MySQL 全局时区固定 +08:00，所以 Navicat 等人工会话直接看到北京时间。
+    # 应用侧不靠这个参数保证正确性——它在 JDBC URL 里用
+    # connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true 把"自己的连接"钉成 UTC
+    # （Hibernate 绑 Instant 时按 UTC 墙钟时间，必须配 UTC 会话）。详见 PROJECT_OVERVIEW.md §6.4。
+    command: --default-time-zone=+08:00
     environment:
       MYSQL_DATABASE: ai_ticket_assistant
       MYSQL_USER: app
       MYSQL_PASSWORD: app
       MYSQL_ROOT_PASSWORD: root
+      TZ: Asia/Shanghai
     ports:
       - "13306:3306"
     volumes:
@@ -17,14 +23,6 @@ services:
       timeout: 5s
       retries: 10
 
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: ai-ticket-chromadb
-    ports:
-      - "8000:8000"
-    volumes:
-      - chroma-data:/chroma/chroma
-
   backend:
     build:
       context: ./backend
@@ -32,14 +30,11 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      chromadb:
-        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ai_ticket_assistant?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ai_ticket_assistant?useSSL=false&allowPublicKeyRetrieval=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
       SPRING_DATASOURCE_USERNAME: app
       SPRING_DATASOURCE_PASSWORD: app
-      CHROMA_BASE_URL: http://chromadb:8000
       CORS_ALLOWED_ORIGINS: http://localhost:15173,http://127.0.0.1:15173,http://localhost:5173,http://127.0.0.1:5173
       AI_PROVIDER: ${AI_PROVIDER:-fallback}
       QWEN_API_KEY: ${QWEN_API_KEY:-}
@@ -48,9 +43,6 @@ services:
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1/chat/completions}
       DEEPSEEK_MAX_TOKENS: ${DEEPSEEK_MAX_TOKENS:-2000}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-4-7}
-      ANTHROPIC_ENABLE_REAL_CLIENT: ${ANTHROPIC_ENABLE_REAL_CLIENT:-false}
     ports:
       - "18080:8080"
     healthcheck:
@@ -80,4 +72,3 @@ services:
 
 volumes:
   mysql-data:
-  chroma-data:
