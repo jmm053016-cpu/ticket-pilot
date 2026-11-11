@@ -343,8 +343,6 @@ curl -i -X POST http://localhost:5173/auth/login -H "Content-Type: application/j
 
 ## AI Adapter 设计
 
-## AI Adapter 设计
-
 后端通过 `AiClientPort` 解耦外部 AI 服务：
 
 ```text
